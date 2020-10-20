@@ -16,7 +16,7 @@ def main():
     data_ = data_[data_['TEST_TYPE'] == 'in vivo'] # pick 'in vitro'
     data_ = data_[data_['SIN_REP_TYPE'] == 'Single'] # pick 'single' administration
     data_ = data_[data_['ORGAN'] == 'Liver'] # pick 'liver'
-    data_ = data_[data_['COMPOUND_NAME'] == 'colchicine']
+    #data_ = data_[data_['COMPOUND_NAME'] == 'colchicine']
 
     ## dose course
     data_ctl = data_[data_['DOSE_LEVEL'] == 'Control']
@@ -27,47 +27,52 @@ def main():
     
     ## Fix timepoint (inc/ all timepoints) ##
     ## AST-ALT plot with dose dependent
-    for i, (name, group) in enumerate(data_ctl.groupby('SACRI_PERIOD')):
-        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=20, c=[plt.get_cmap('tab10').colors[i]], marker='o', label=name)
 
-    for i, (name, group) in enumerate(data_low.groupby('SACRI_PERIOD')):
-        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=20, c=[plt.get_cmap('tab10').colors[i]], marker='D', label=name)
-
-    for i, (name, group) in enumerate(data_mid.groupby('SACRI_PERIOD')):
-        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=20, c=[plt.get_cmap('tab10').colors[i]], marker='^', label=name)
-
+    # high
     for i, (name, group) in enumerate(data_high.groupby('SACRI_PERIOD')):
-        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=20, c=[plt.get_cmap('tab10').colors[i]], marker='h', label=name)
+        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=10, c=[plt.get_cmap('tab10').colors[i]], marker='h', label=name)
+    # middle
+    for i, (name, group) in enumerate(data_mid.groupby('SACRI_PERIOD')):
+        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=10, c=[plt.get_cmap('tab10').colors[i]], marker='^', label=name)
+    # low
+    for i, (name, group) in enumerate(data_low.groupby('SACRI_PERIOD')):
+        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=10, c=[plt.get_cmap('tab10').colors[i]], marker='D', label=name)
+    # control
+    for i, (name, group) in enumerate(data_ctl.groupby('SACRI_PERIOD')):
+        plt.scatter(group['AST(IU/L)'], group['ALT(IU/L)'], alpha=0.4, s=10, c=[plt.get_cmap('tab10').colors[i]], marker='o', label=name)
 
-    '''
-    plt.scatter(data_high['AST(IU/L)'], data_high['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='magenta', label='High')
+
+    # high
+    plt.scatter(data_high['AST(IU/L)'], data_high['ALT(IU/L)'], alpha=0.4, s=10, marker='h', c='magenta', label='High')
     for x, y, name in zip(data_high['AST(IU/L)'], data_high['ALT(IU/L)'], data_high['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='magenta', fontsize=3)
-
-    plt.scatter(data_middle['AST(IU/L)'], data_middle['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='orange', label='Middle')
-    for x, y, name in zip(data_middle['AST(IU/L)'], data_middle['ALT(IU/L)'], data_middle['COMPOUND_NAME']):
+    # mid
+    plt.scatter(data_mid['AST(IU/L)'], data_mid['ALT(IU/L)'], alpha=0.4, s=10, marker='^', c='orange', label='Middle')
+    for x, y, name in zip(data_mid['AST(IU/L)'], data_mid['ALT(IU/L)'], data_mid['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='orange', fontsize=3)
-
-    plt.scatter(data_low['AST(IU/L)'], data_low['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='blue', label='Low')
-    for x, y, name in zip(data_low['AST(IU/L)'], data_low['ALT(IU/L)'], data_middle['COMPOUND_NAME']):
+    # low
+    plt.scatter(data_low['AST(IU/L)'], data_low['ALT(IU/L)'], alpha=0.4, s=10, marker='D', c='blue', label='Low')
+    for x, y, name in zip(data_low['AST(IU/L)'], data_low['ALT(IU/L)'], data_low['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='blue', fontsize=3)
-
-    plt.scatter(data_ctl['AST(IU/L)'], data_ctl['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='green', label='Control')
-    for x, y, name in zip(data_ctl['AST(IU/L)'], data_ctl['ALT(IU/L)'], data_middle['COMPOUND_NAME']):
+    # control
+    plt.scatter(data_ctl['AST(IU/L)'], data_ctl['ALT(IU/L)'], alpha=0.4, s=10, marker='o', c='green', label='Control')
+    for x, y, name in zip(data_ctl['AST(IU/L)'], data_ctl['ALT(IU/L)'], data_ctl['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='green', fontsize=3)
-    '''
+
 
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel('AST(IU/L)')
     plt.ylabel('ALT(IU/L)')
+    #plt.title('Rat Vivo, Dose Dependend Test')
     plt.legend(loc='lower right')
-    filename2 = '../data/scatterplot_ASTALT_RatVivo_DoseDependent_colchicine_TEST.png'
-    plt.savefig(filename2, dpi=300, format='png')
+    filename2 = '../data/scatterplot_ASTALT_RatVivo_DoseDependent_TEST.png'
+    plt.savefig(filename2, dpi=600, format='png')
     print(f'[SAVE]: {filename2}')
     plt.clf()
 
-    '''
+
+
     ## timepoint course
     data_3hr = data_[data_['SACRI_PERIOD'] == '3 hr']  
     data_6hr = data_[data_['SACRI_PERIOD'] == '6 hr']  
@@ -76,36 +81,38 @@ def main():
 
     ## Fix dose level ##
     ## AST-ALT plot with time dependent
-    plt.scatter(data_24hr['AST(IU/L)'], data_24hr['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='magenta', label='24hr')
-    for x, y, name in zip(data_24hr['AST(IU/L)'], data_24hr['ALT(IU/L)'], data_high['COMPOUND_NAME']):
+
+    # 24hr
+    plt.scatter(data_24hr['AST(IU/L)'], data_24hr['ALT(IU/L)'], alpha=0.4, s=10, marker='h', c='magenta', label='24hr')
+    for x, y, name in zip(data_24hr['AST(IU/L)'], data_24hr['ALT(IU/L)'], data_24hr['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='magenta', fontsize=3)
-
-    plt.scatter(data_9hr['AST(IU/L)'], data_9hr['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='orange', label='9hr')
-    for x, y, name in zip(data_9hr['AST(IU/L)'], data_9hr['ALT(IU/L)'], data_high['COMPOUND_NAME']):
+    # 9hr
+    plt.scatter(data_9hr['AST(IU/L)'], data_9hr['ALT(IU/L)'], alpha=0.4, s=10, marker='^', c='orange', label='9hr')
+    for x, y, name in zip(data_9hr['AST(IU/L)'], data_9hr['ALT(IU/L)'], data_9hr['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='orange', fontsize=3)
-
-    plt.scatter(data_6hr['AST(IU/L)'], data_6hr['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='blue', label='6hr')
-    for x, y, name in zip(data_6hr['AST(IU/L)'], data_6hr['ALT(IU/L)'], data_high['COMPOUND_NAME']):
+    # 6hr
+    plt.scatter(data_6hr['AST(IU/L)'], data_6hr['ALT(IU/L)'], alpha=0.4, s=10, marker='D', c='blue', label='6hr')
+    for x, y, name in zip(data_6hr['AST(IU/L)'], data_6hr['ALT(IU/L)'], data_6hr['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='blue', fontsize=3)
-
-    plt.scatter(data_3hr['AST(IU/L)'], data_3hr['ALT(IU/L)'], alpha=0.4, s=20, marker='o', c='green', label='3hr')
-    for x, y, name in zip(data_3hr['AST(IU/L)'], data_3hr['ALT(IU/L)'], data_high['COMPOUND_NAME']):
+    # 3hr
+    plt.scatter(data_3hr['AST(IU/L)'], data_3hr['ALT(IU/L)'], alpha=0.4, s=10, marker='o', c='green', label='3hr')
+    for x, y, name in zip(data_3hr['AST(IU/L)'], data_3hr['ALT(IU/L)'], data_3hr['COMPOUND_NAME']):
         plt.text(x, y, name, alpha=0.8, color='green', fontsize=3)
 
     plt.xscale('log')
     plt.yscale('log')
-    #plt.title('Rat in vivo, Dose: High')
+    plt.title('Rat Vivo, Time Dependent Test')
     plt.xlabel('AST(IU/L)')
     plt.ylabel('ALT(IU/L)')
     plt.legend(loc='lower right')
-    filename3 = '../data/scatterplot_ASTALT_RatVivo_TimeDependent_colchicine.png'
-    plt.savefig(filename3, dpi=300, format='png')
+    filename3 = '../data/scatterplot_ASTALT_RatVivo_TimeDependent_TEST1.png'
+    plt.savefig(filename3, dpi=600, format='png')
     print(f'[SAVE]: {filename3}')
     plt.clf()
-    '''
 
 
-    '''
+
+
     data_24hr_ = data_[data_['SACRI_PERIOD'] == '3 hr']
     data_24hr_ctl = data_24hr_[data_24hr_['DOSE_LEVEL'] == 'Control']
     data_24hr_low = data_24hr_[data_24hr_['DOSE_LEVEL'] == 'Low']
@@ -126,7 +133,7 @@ def main():
     plt.savefig(filename4, dpi=300, format='png')
     print(f'[SAVE]: {filename4}')
     plt.clf()
-    '''
+
 
 if __name__ == '__main__':
     main()
