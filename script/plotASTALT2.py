@@ -1,6 +1,6 @@
 # Author: yoshi
 # Date: 10/21/2020
-# Update:
+# Update: 10/26/2020
 # Project: oepnTGgates
 # Script: to plot AST/ALT with dose depenency
 
