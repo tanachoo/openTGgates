@@ -1,9 +1,9 @@
 # Author: yoshi
 # Date: 10/08/2020
-# Updated: 11/17/2020
+# Updated: 03/02/2021
 # Project: openTGgates
 # Script: curate MAS5-processed csv file to generate dataset for BN input
-# Run: python make_dataset.py --species rat/human --exptype vivo/vitro --output ../data/TESTdataset_acetaminophen.txt
+# Run: python make_dataset.py --species <rat/human> --exptype <vivo/vitro> --reptype <single/repeat> --output <../data/TESTdataset_acetaminophen.txt>
 
 import pandas as pd
 import numpy as np
@@ -31,24 +31,32 @@ def main():
 
     ## Select Rat/Human and vivo/vitro
     if args.species == 'rat':
+        att_ = att_[att_['SPECIES'] == 'Rat'] # Select 'Rat' experiment data
+
         if args.exptype == 'vivo':
-            print(f'[EXP DESIGN]: Rat / vivo')
-            att_ = att_[att_['SPECIES'] == 'Rat'] # Select 'Rat' experiment data
             att_ = att_[att_['TEST_TYPE'] == 'in vivo'] # Select 'in vivo' design
-            att_ = att_[att_['SIN_REP_TYPE'] == 'Single'] # Select 'Single' administration design
-            att_ = att_[att_['ORGAN'] == 'Liver'] # Select 'Liver' design
-            att_ = att_[att_['BARCODE'] != 'No ChipData'] # Drop unavailable barcode data
+
+            if args.reptype == 'single':
+                att_ = att_[att_['SIN_REP_TYPE'] == 'Single'] # Select 'Single' administration design
+                att_ = att_[att_['ORGAN'] == 'Liver'] # Select 'Liver' design
+                att_ = att_[att_['BARCODE'] != 'No ChipData'] # Drop unavailable barcode data
+                print(f'[EXP DESIGN]: Rat / in vivo / liver / single')
+
+            elif args.reptype == 'repeat':
+                att_ = att_[att_['SIN_REP_TYPE'] == 'Repeat'] # Select 'Repeat' administration design
+                att_ = att_[att_['ORGAN'] == 'Liver'] # Select 'Liver' design
+                att_ = att_[att_['BARCODE'] != 'No ChipData'] # Drop unavailable barcode data
+                print(f'[EXP DESIGN]: Rat / in vivo / liver / repeat')
 
         elif args.exptype == 'vitro':
-            print(f'[EXP DESIGN]: Rat / vitro')
-            att_ = att_[att_['SPECIES'] == 'Rat'] # Select Rat experiment data
             att_ = att_[att_['TEST_TYPE'] == 'in vitro'] # Select 'in vitro' design
             att_ = att_[att_['BARCODE'] != 'No ChipData'] # Drop unavailable barcode data
+            print(f'[EXP DESIGN]: Rat / vitro')
 
     elif args.species == 'human':
-            print(f'[EXP DESIGN]: Human / vitro')
-            att_ = att_[att_['SPECIES'] == 'Human'] # Select Human experiment data
-            att_ = att_[att_['BARCODE'] != 'No ChipData'] # Drop unavailable barcode data
+        att_ = att_[att_['SPECIES'] == 'Human'] # Select Human experiment data
+        att_ = att_[att_['BARCODE'] != 'No ChipData'] # Drop unavailable barcode data
+        print(f'[EXP DESIGN]: Human / vitro')
 
 
     ## generate a label column, such as 'CBP_2hr_Control_1'('Drug_TreatmentTime_Dose_replicates')
@@ -64,6 +72,7 @@ def main():
 
 
     ### Here, select arbitrary conditions (Dose/Time/Drug) ###
+    ### If you do NOT select any criteria, you'll get all the number of samples ###
     '''
     ## If you use drug txt dataset...Run code below
     drugfile = '../data/Shared126DrugList_RatVivoVitro_HumanVitro.txt'
@@ -82,7 +91,7 @@ def main():
     print(f'TimePoint: 24hr')
     print(f'Dose: Control, High')
     '''
-    att_ = att_[att_['COMPOUND_NAME'] == 'acetaminophen']
+    # att_ = att_[att_['COMPOUND_NAME'] == 'acetaminophen']
 
 
     # Prep required barcodes list, such as barcodelist=['3016032003', '3016032004',..]
@@ -98,7 +107,10 @@ def main():
     ## Prepare for loading microarray data
     if args.species == 'rat':
         if args.exptype == 'vivo':
-            dirpath = '../data/Rat_vivo_liver_single_csv/*/celfiles/*csv'
+            if args.reptype == 'single':
+                dirpath = '../data/Rat_vivo_liver_single_csv/*/celfiles/*csv'
+            elif args.reptype == 'repeat':
+                dirpath = '../data/Rat_vivo_liver_repeat_csv/*/celfiles/*csv'
         elif args.exptype == 'vitro':
             dirpath = '../data/Rat_vitro_liver_csv/*/celfiles/*csv'
     elif args.species == 'human':
@@ -112,7 +124,7 @@ def main():
         for l in dirlist:
             filename = os.path.basename(l)
             if barcode_ in filename:
-                print(f'file path: {l}')
+                # print(f'file path: {l}')
                 data = pd.read_table(l, sep=',', header=0)
                 data_ = data.loc[:, ['probe_set_id', 'median_normalized_signal_intensity', 'mas5calls']]
                 data_ = data_[data_['mas5calls'] == 'P'] # Select credible signal value
@@ -120,11 +132,12 @@ def main():
                 data_= data_.set_index('probe_set_id')
                 data_s = data_['median_normalized_signal_intensity'] 
                 data_s = data_s.rename(barcode2label_mapping[k]) # rename to identical label
-                print(f'matrix: {data_s.shape}')
+                # print(f'matrix: {data_s.shape}')
                 datalist.append(data_s)
 
     # Generate a gene-by-sample matrix
-    matrix = pd.concat(datalist, join='inner', axis=1) # remove probes with at least one 'NA'
+    #matrix = pd.concat(datalist, join='inner', axis=1) # remove probes with at least one 'NA'
+    matrix = pd.concat(datalist, join='outer', axis=1) # keep all probes with at least one 'NA'
     print(f'original matrix post concat: {matrix.shape}')
 
     ## load probe annotation file to convert probeID to GeneSymbol
@@ -177,8 +190,7 @@ def main():
     matrix_log = np.log2(matrix_ + 1) # take log2
     print(f'final matrix: {matrix_log.shape}')
 
-    
-    #outputfile = '../data/RatVivoLiver_dataset_acetaminophen_TEST.txt'
+    ## Export dataset as txt file
     print(f'[SAVE]: {args.output}')
     with open(args.output, 'w') as f:
         matrix_log.to_csv(f, sep='\t', header=True, index=True)
@@ -189,6 +201,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--species', type=str, help="rat / human")
     parser.add_argument('--exptype', type=str, help="vivo / vitro")
+    parser.add_argument('--reptype', type=str, help="single / repeat")
     parser.add_argument('--output', type=str, help="Set output filename")
     args = parser.parse_args()
 
