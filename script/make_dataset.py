@@ -1,6 +1,6 @@
 # Author: yoshi
 # Date: 10/08/2020
-# Updated: 03/02/2021
+# Updated: 03/04/2021
 # Project: openTGgates
 # Script: curate MAS5-processed csv file to generate dataset for BN input
 # Run: python make_dataset.py --species <rat/human> --exptype <vivo/vitro> --reptype <single/repeat> --output <../data/TESTdataset_acetaminophen.txt>
@@ -138,7 +138,7 @@ def main():
     # Generate a gene-by-sample matrix
     #matrix = pd.concat(datalist, join='inner', axis=1) # remove probes with at least one 'NA'
     matrix = pd.concat(datalist, join='outer', axis=1) # keep all probes with at least one 'NA'
-    print(f'original matrix post concat: {matrix.shape}')
+    print(f'# original matrix post concat: {matrix.shape}')
 
     ## load probe annotation file to convert probeID to GeneSymbol
     if args.species == 'rat':
@@ -166,12 +166,12 @@ def main():
     for i in noGeneSymbol_list:
         if i in list(matrix.index):
             matrix = matrix.drop(i, axis=0)
-    print(f'matrix post removal of noGeneSymbol probe: {matrix.shape}')
+    print(f'# matrix post removal of noGeneSymbol probe: {matrix.shape}')
 
     for i in controlProbe_list:
         if i in list(matrix.index):
             matrix = matrix.drop(i, axis=0)
-    print(f'matrix post removal of controlProbe probe: {matrix.shape}')
+    print(f'# matrix post removal of controlProbe probe: {matrix.shape}')
 
     ## obtain final probe list
     probelist = list(matrix.index)
@@ -186,9 +186,9 @@ def main():
     matrix_ = matrix.reset_index()
     matrix_ = matrix_.rename(columns={'index': 'Gene'})
     matrix_ = matrix_.groupby('Gene').mean() # take average for duplicated gene signal
-    print(f'matrix shape post conversion of duplicated same gene: {matrix_.shape}')
+    print(f'# matrix shape post conversion of duplicated gene: {matrix_.shape}')
     matrix_log = np.log2(matrix_ + 1) # take log2
-    print(f'final matrix: {matrix_log.shape}')
+    print(f'# final matrix: {matrix_log.shape}')
 
     ## Export dataset as txt file
     print(f'[SAVE]: {args.output}')
